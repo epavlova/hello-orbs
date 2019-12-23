@@ -32,10 +32,14 @@ jobs:
           name: Run linters
           command: |
             golangci-lint run --new-from-rev=$(git rev-parse origin/master) --config .golangci.yml --build-tags=integration
-      - run: |
-          go test -tags=integration -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
-      - run: |
-          goveralls -coverprofile=$CIRCLE_COVERAGE_REPORT/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+      - run:
+          name: Run unit and integration tests
+          command: |
+            go test -tags=integration -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
+      - run:
+          name: Report coverage
+          command: |
+            goveralls -coverprofile=$CIRCLE_COVERAGE_REPORT/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
       - store_test_results:
           path: /tmp/test-reports
 
