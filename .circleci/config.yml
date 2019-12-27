@@ -1,54 +1,11 @@
 version: 2.1
-jobs:
-  build:
-    docker:
-      - image: golang:1
 
-    working_directory: /hello-orbs
-    environment:
-          CIRCLE_TEST_REPORTS: /tmp/test-reports
-          CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
-          CIRCLE_ARTIFACTS: /tmp/artifacts
-
-    steps:
-      - checkout
-      - run:
-          name: External Dependencies
-          command: |
-            GO111MODULE=off go get github.com/mattn/goveralls
-            GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-            wget https://raw.githubusercontent.com/Financial-Times/upp-coding-standard/v1.0.0/golangci-config/.golangci.yml
-      - run:
-          name: Create test folder
-          command: |
-            mkdir -p ${CIRCLE_TEST_REPORTS}
-            mkdir -p ${CIRCLE_COVERAGE_REPORT}
-            mkdir -p ${CIRCLE_ARTIFACTS}
-      - run:
-          name: Go Build
-          command: go build -mod=readonly -v
-      - run:
-          name: Run linters
-          command: |
-            golangci-lint run --new-from-rev=$(git rev-parse origin/master) --config .golangci.yml --build-tags=integration
-      - run:
-          name: Run unit and integration tests
-          command: |
-            go test -tags=integration -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
-      - run:
-          name: Report coverage
-          command: |
-            goveralls -coverprofile=$CIRCLE_COVERAGE_REPORT/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
-      - store_test_results:
-          path: /tmp/test-reports
-
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: build
+orbs:
+  golang-ci: epavlova/golang-ci@dev:0.0.1
 
 workflows:
   version: 2.1
   tests_and_docker:
     jobs:
-      - build
+      - golang-ci/build-and-test:
+          name: build-and-test-project
