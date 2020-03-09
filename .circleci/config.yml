@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  golang-ci: epavlova/golang-ci@0.2
+  golang-ci: epavlova/golang-ci@1.0.5
 
 workflows:
   version: 2.1
